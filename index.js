@@ -93,7 +93,7 @@ async function removeOldIps(listName = list, maxAgeHours = expireHours) {
 
 // Route to handle incoming POST requests
 app.post('/add-ip', async (req, res) => {
-  const { ip } = req.body.ip;
+  const { ip } = req.body;
 
   if (!ip) {
     return res.status(400).send('IP address is required.');
