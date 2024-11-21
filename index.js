@@ -101,87 +101,87 @@ async function addIpToAddressList(ip, listName = list) {
 //     });
 
 // Function to add IP to MikroTik address list
-async function addIpToAddressListOLD(ip, listName = list) {
-    mikronodeDevice.connect()
-        .then(([login]) => {
-            return login(router.user, router.pass);
-        })
-        .then(function (conn) {
-  try {
-    const channel = connection.openChannel();
+// async function addIpToAddressListOLD(ip, listName = list) {
+//     mikronodeDevice.connect()
+//         .then(([login]) => {
+//             return login(router.user, router.pass);
+//         })
+//         .then(function (conn) {
+//   try {
+//     const channel = connection.openChannel();
 
-    // Check if IP already exists in the list
-    const existingEntries = channel.writeAndRead([
-      '/ip/firewall/address-list/print',
-      `?list=${listName}`,
-      `?address=${ip}`
-    ]);
+//     // Check if IP already exists in the list
+//     const existingEntries = channel.writeAndRead([
+//       '/ip/firewall/address-list/print',
+//       `?list=${listName}`,
+//       `?address=${ip}`
+//     ]);
 
-    if (existingEntries.length === 0) {
-      // Add IP if not in the list
-      channel.write([
-        '/ip/firewall/address-list/add',
-        `=list=${listName}`,
-        `=address=${ip}`,
-        `=comment=Added on ${new Date().toISOString()}`
-      ]);
-      console.log(`IP ${ip} added to address list.`);
-    } else {
-      console.log(`IP ${ip} already exists in the address list.`);
-    }
+//     if (existingEntries.length === 0) {
+//       // Add IP if not in the list
+//       channel.write([
+//         '/ip/firewall/address-list/add',
+//         `=list=${listName}`,
+//         `=address=${ip}`,
+//         `=comment=Added on ${new Date().toISOString()}`
+//       ]);
+//       console.log(`IP ${ip} added to address list.`);
+//     } else {
+//       console.log(`IP ${ip} already exists in the address list.`);
+//     }
 
-    channel.close();
-  } catch (err) {
-    console.error(`Error interacting with MikroTik: ${err.message}`);
-  } finally {
-    connection.close();
-  }
+//     channel.close();
+//   } catch (err) {
+//     console.error(`Error interacting with MikroTik: ${err.message}`);
+//   } finally {
+//     connection.close();
+//   }
             
-        });
+//         });
 
-//   const connection = await MikroNode.connect(router.host, router.user, router.pass);
+// //   const connection = await MikroNode.connect(router.host, router.user, router.pass);
   
 
-}
+// }
 
 // Function to remove old IPs from the address list
-async function removeOldIps(listName = list, maxAgeHours = expireHours) {
-  const connection = MikroNode.connect(router.host, router.user, router.pass);
-  try {
-    await connection.connect();
-    const channel = connection.openChannel();
+// async function removeOldIps(listName = list, maxAgeHours = expireHours) {
+//   const connection = MikroNode.connect(router.host, router.user, router.pass);
+//   try {
+//     await connection.connect();
+//     const channel = connection.openChannel();
 
-    const now = new Date();
-    const maxAgeMs = maxAgeHours * 60 * 60 * 1000;
+//     const now = new Date();
+//     const maxAgeMs = maxAgeHours * 60 * 60 * 1000;
 
-    // Get all entries in the address list
-    const entries = await channel.writeAndRead([
-      '/ip/firewall/address-list/print',
-      `?list=${listName}`
-    ]);
+//     // Get all entries in the address list
+//     const entries = await channel.writeAndRead([
+//       '/ip/firewall/address-list/print',
+//       `?list=${listName}`
+//     ]);
 
-    for (const entry of entries) {
-      const commentDate = entry.comment?.match(/Added on (.+)/)?.[1];
-      if (commentDate) {
-        const entryDate = new Date(commentDate);
-        if (now - entryDate > maxAgeMs) {
-          // Remove old entries
-          await channel.write([
-            '/ip/firewall/address-list/remove',
-            `=.id=${entry['.id']}`
-          ]);
-          console.log(`Removed IP ${entry.address} from address list.`);
-        }
-      }
-    }
+//     for (const entry of entries) {
+//       const commentDate = entry.comment?.match(/Added on (.+)/)?.[1];
+//       if (commentDate) {
+//         const entryDate = new Date(commentDate);
+//         if (now - entryDate > maxAgeMs) {
+//           // Remove old entries
+//           await channel.write([
+//             '/ip/firewall/address-list/remove',
+//             `=.id=${entry['.id']}`
+//           ]);
+//           console.log(`Removed IP ${entry.address} from address list.`);
+//         }
+//       }
+//     }
 
-    channel.close();
-  } catch (err) {
-    console.error(`Error cleaning up old IPs: ${err.message}`);
-  } finally {
-    connection.close();
-  }
-}
+//     channel.close();
+//   } catch (err) {
+//     console.error(`Error cleaning up old IPs: ${err.message}`);
+//   } finally {
+//     connection.close();
+//   }
+// }
 
 // Route to handle incoming POST requests
 app.post('/add-ip', async (req, res) => {
