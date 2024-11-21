@@ -1,6 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const RosApi = require('node-routeros').RouterOSAPI;
+var cors = require('cors')
+
+var corsOptions = {
+  origin: 'https://mc-auth.baloghsmart.hu',
+//   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
 
 const app = express();
 const port = 3000;
@@ -92,7 +98,7 @@ async function removeOldIps(listName = list, maxAgeHours = expireHours) {
 }
 
 // Route to handle incoming POST requests
-app.post('/add-ip', async (req, res) => {
+app.post('/add-ip',cors(corsOptions), async (req, res) => {
     const { ip } = req.body;
 
     if (!ip) {
