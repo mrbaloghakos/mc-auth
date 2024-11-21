@@ -9,6 +9,7 @@ var corsOptions = {
 }
 
 const app = express();
+app.use(cors());
 const port = 3000;
 const list = 'mc-auth';
 const expireHours = 5;
