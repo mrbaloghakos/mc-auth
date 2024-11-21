@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { MikroNode } = require('mikronode');
+const RosApi = require('node-routeros').RouterOSAPI;
 
 const app = express();
 const port = 3000;
@@ -17,7 +17,51 @@ const router = {
   pass: '`279T|VhIr*e'      // Replace with your router's password
 };
 
-var mikronodeDevice = new MikroNode(router.host);
+const conn = new RosApi({
+    host: router.host,
+    user: router.user,
+    password: router.pass,
+});
+
+async function addIpToAddressList(ip, listName = list) {
+    conn.connect()
+        .then(() => {
+            // Connection successful
+
+            // Get addresses in the list
+            conn.write('/ip/firewall/address-list/print', [
+                `?list=${listName}`,
+                `?address=${ip}`
+            ]).then((data) => {
+                var existingEntries = data;
+                    if (existingEntries.length === 0) {
+                      // Add IP if not in the list
+                      channel.write('/ip/firewall/address-list/add', [
+                        `=list=${listName}`,
+                        `=address=${ip}`,
+                        `=comment=Added on ${new Date().toISOString()}`
+                      ]);
+                      console.log(`IP ${ip} added to address list.`);
+                    } else {
+                      console.log(`IP ${ip} already exists in the address list.`);
+                    }
+                
+                    conn.close();
+                })
+                .catch((err) => {
+                    // Oops, got an error
+                    console.log(err);
+                });
+        })
+        .catch((err) => {
+            // Got an error while trying to connect
+            console.log(err);
+        });
+}
+
+
+
+// var mikronodeDevice = new MikroNode(router.host);
 
 // mikronodeDevice.connect()
 //       .then(([login])=>{
@@ -57,7 +101,7 @@ var mikronodeDevice = new MikroNode(router.host);
 //     });
 
 // Function to add IP to MikroTik address list
-async function addIpToAddressList(ip, listName = list) {
+async function addIpToAddressListOLD(ip, listName = list) {
     mikronodeDevice.connect()
         .then(([login]) => {
             return login(router.user, router.pass);
