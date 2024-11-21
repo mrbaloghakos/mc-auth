@@ -17,15 +17,57 @@ const router = {
   pass: '`279T|VhIr*e'      // Replace with your router's password
 };
 
+var mikronodeDevice = new MikroNode(router.host);
+
+// mikronodeDevice.connect()
+//       .then(([login])=>{
+//         return login(router.user, router.pass);
+//       })
+//       .then(function(conn) {
+ 
+//         var chan=conn.openChannel("addresses"); // open a named channel
+//         var chan2=conn.openChannel("firewall_connections",true); // open a named channel, turn on "closeOnDone"
+ 
+//         chan.write('/ip/address/print');
+ 
+//         chan.on('done',function(data) {
+ 
+//              // data is all of the sentences in an array.
+//              data.forEach(function(item) {
+//                 console.log('Interface/IP: '+item.data.interface+"/"+item.data.address);
+//              });
+ 
+//              chan.close(); // close the channel. It is not autoclosed by default.
+//              conn.close(); // when closing connection, the socket is closed and program ends.
+ 
+//         });
+ 
+//         chan.write('/ip/firewall/print');
+ 
+//         chan.done.subscribe(function(data){
+ 
+//              // data is all of the sentences in an array.
+//              data.forEach(function(item) {
+//                 var data = MikroNode.resultsToObj(item.data); // convert array of field items to object.
+//                 console.log('Interface/IP: '+data.interface+"/"+data.address);
+//              });
+ 
+//         });
+ 
+//     });
+
 // Function to add IP to MikroTik address list
-async function addIpToAddressList(ip, listName = 'my-address-list') {
-  const connection = await MikroNode.connect(router.host, router.user, router.pass);
-  
+async function addIpToAddressList(ip, listName = list) {
+    mikronodeDevice.connect()
+        .then(([login]) => {
+            return login(router.user, router.pass);
+        })
+        .then(function (conn) {
   try {
     const channel = connection.openChannel();
 
     // Check if IP already exists in the list
-    const existingEntries = await channel.writeAndRead([
+    const existingEntries = channel.writeAndRead([
       '/ip/firewall/address-list/print',
       `?list=${listName}`,
       `?address=${ip}`
@@ -33,7 +75,7 @@ async function addIpToAddressList(ip, listName = 'my-address-list') {
 
     if (existingEntries.length === 0) {
       // Add IP if not in the list
-      await channel.write([
+      channel.write([
         '/ip/firewall/address-list/add',
         `=list=${listName}`,
         `=address=${ip}`,
@@ -50,6 +92,12 @@ async function addIpToAddressList(ip, listName = 'my-address-list') {
   } finally {
     connection.close();
   }
+            
+        });
+
+//   const connection = await MikroNode.connect(router.host, router.user, router.pass);
+  
+
 }
 
 // Function to remove old IPs from the address list
