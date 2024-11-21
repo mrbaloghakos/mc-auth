@@ -194,7 +194,8 @@ app.post('/add-ip', async (req, res) => {
     return res.status(400).send('IP address is required.');
   }
 
-  try {
+    try {
+        console.log("IPPPP: " + JSON.stringify(ip));
     await addIpToAddressList(ip);
     res.status(200).send(`IP ${ip} processed.`);
   } catch (err) {
