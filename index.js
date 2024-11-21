@@ -40,6 +40,7 @@ async function addIpToAddressList(ip, listName = list) {
                     `=comment=Added on ${new Date().toISOString()}`
                 ]).then(data => { 
                 console.log(`IP ${ip} added to address list.`);
+                console.log(`DATA: ${data}`);
                  }).catch((err) => {
                     // Got error trying to add the address
                     // If you get an error it will throw an Error object, with a message property
