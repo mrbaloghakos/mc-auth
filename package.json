@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.1",
+    "mikronode": "^2.3.11"
+  },
+  "name": "mc-auth",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrbaloghakos/mc-auth.git"
+  },
+  "author": "Akos B",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mrbaloghakos/mc-auth/issues"
+  },
+  "homepage": "https://github.com/mrbaloghakos/mc-auth#readme",
+  "description": ""
+}
