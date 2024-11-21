@@ -38,7 +38,14 @@ async function addIpToAddressList(ip, listName = list) {
                     `=list=${listName}`,
                     `=address=${ip}`,
                     `=comment=Added on ${new Date().toISOString()}`
-                ]);
+                ]).then(data => { 
+                console.log(`IP ${ip} added to address list.`);
+                 }).catch((err) => {
+                    // Got error trying to add the address
+                    // If you get an error it will throw an Error object, with a message property
+                    console.log("Adding error")
+                    console.log(err.message);
+                });
                 console.log(`IP ${ip} added to address list.`);
             } else {
                 console.log(`IP ${ip} already exists in the address list.`);
