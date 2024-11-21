@@ -36,7 +36,7 @@ async function addIpToAddressList(ip, listName = list) {
                 var existingEntries = data;
                     if (existingEntries.length === 0) {
                       // Add IP if not in the list
-                      channel.write('/ip/firewall/address-list/add', [
+                      conn.write('/ip/firewall/address-list/add', [
                         `=list=${listName}`,
                         `=address=${ip}`,
                         `=comment=Added on ${new Date().toISOString()}`
