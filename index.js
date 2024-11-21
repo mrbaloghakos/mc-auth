@@ -24,34 +24,28 @@ const conn = new RosApi({
 });
 
 async function addIpToAddressList(ip, listName = list) {
-    conn.connect().then(() => {
-        // Get addresses in the list
-        conn.write('/ip/firewall/address-list/print', [
+    conn.connect().then(async () => {
+        await conn.write('/ip/firewall/address-list/print', [
             `?list=${listName}`,
             `?address=${ip}`
-        ]).then((data) => {
+        ]).then(async (data) => {
             var existingEntries = data;
-            // console.log(JSON.stringify(existingEntries));
             if (existingEntries.length === 0) {
-                conn.write([
+                await conn.write([
                     '/ip/firewall/address-list/add',
                     `=list=${listName}`,
                     `=address=${ip}`,
                     `=comment=Added on ${new Date().toISOString()}`
-                ]).then(data => { 
-                console.log(`IP ${ip} added to address list.`);
-                console.log(`DATA: ${data}`);
-                 }).catch((err) => {
-                    // Got error trying to add the address
-                    // If you get an error it will throw an Error object, with a message property
+                ]).then(() => {
+                    console.log(`IP ${ip} added to address list.`);
+                }).catch((err) => {
                     console.log("Adding error")
                     console.log(err.message);
                 });
-                console.log(`IP ${ip} added to address list.`);
             } else {
                 console.log(`IP ${ip} already exists in the address list.`);
             }
-            conn.close();
+            await conn.close();
         })
             .catch((err) => {
                 console.log("Command error");
@@ -65,17 +59,19 @@ async function addIpToAddressList(ip, listName = list) {
 
 // Function to remove old IPs from the address list
 async function removeOldIps(listName = list, maxAgeHours = expireHours) {
-    conn.connect().then(() => {
-        conn.write('/ip/firewall/address-list/print', [
+    conn.connect().then(async () => {
+        await conn.write('/ip/firewall/address-list/print', [
             `?list=${listName}`
-        ]).then((data) => {
+        ]).then(async (data) => {
             var existingEntries = data;
             for (const entry of existingEntries) {
                 const commentDate = entry.comment?.match(/Added on (.+)/)?.[1];
                 if (commentDate) {
                     const entryDate = new Date(commentDate);
+                    const now = new Date();
+                    const maxAgeMs = maxAgeHours * 60 * 60 * 1000;
                     if (now - entryDate > maxAgeMs) {
-                        conn.write([
+                        await conn.write([
                             '/ip/firewall/address-list/remove',
                             `=.id=${entry['.id']}`
                         ]);
@@ -83,7 +79,7 @@ async function removeOldIps(listName = list, maxAgeHours = expireHours) {
                     }
                 }
             }
-            channel.close();
+            await conn.close();
         })
             .catch((err) => {
                 console.log("Command error");
@@ -93,46 +89,6 @@ async function removeOldIps(listName = list, maxAgeHours = expireHours) {
         console.log("Couldn't connect to the router");
         console.log(err);
     });
-
-
-
-
-    const connection = MikroNode.connect(router.host, router.user, router.pass);
-    try {
-
-        await connection.connect();
-        const channel = connection.openChannel();
-
-        const now = new Date();
-        const maxAgeMs = maxAgeHours * 60 * 60 * 1000;
-
-        // Get all entries in the address list
-        const entries = await channel.writeAndRead([
-            '/ip/firewall/address-list/print',
-            `?list=${listName}`
-        ]);
-
-        for (const entry of entries) {
-            const commentDate = entry.comment?.match(/Added on (.+)/)?.[1];
-            if (commentDate) {
-                const entryDate = new Date(commentDate);
-                if (now - entryDate > maxAgeMs) {
-                    // Remove old entries
-                    await channel.write([
-                        '/ip/firewall/address-list/remove',
-                        `=.id=${entry['.id']}`
-                    ]);
-                    console.log(`Removed IP ${entry.address} from address list.`);
-                }
-            }
-        }
-
-        channel.close();
-    } catch (err) {
-        console.error(`Error cleaning up old IPs: ${err.message}`);
-    } finally {
-        connection.close();
-    }
 }
 
 // Route to handle incoming POST requests
@@ -142,16 +98,16 @@ app.post('/add-ip', async (req, res) => {
     if (!ip) {
         return res.status(400).send('IP address is required.');
     }
-
     try {
         // console.log("IPPPP: " + JSON.stringify(ip));
         await addIpToAddressList(ip);
-        res.status(200).send(`IP ${ip} processed.`);
+        res.status(200).send(`\nIP ${ip} processed.`);
     } catch (err) {
         console.error(err);
-        res.status(500).send('An error occurred while processing the request.');
+        res.status(500).send('\nAn error occurred while processing the request.');
     }
 });
+// removeOldIps();
 
 // Periodically clean up old IPs
 setInterval(() => {
