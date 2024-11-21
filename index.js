@@ -136,7 +136,7 @@ app.post('/add-ip', async (req, res) => {
     }
 
     try {
-        console.log("IPPPP: " + JSON.stringify(ip));
+        // console.log("IPPPP: " + JSON.stringify(ip));
         await addIpToAddressList(ip);
         res.status(200).send(`IP ${ip} processed.`);
     } catch (err) {
