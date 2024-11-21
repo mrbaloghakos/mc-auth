@@ -34,8 +34,10 @@ async function addIpToAddressList(ip, listName = list) {
                 `?address=${ip}`
             ]).then((data) => {
                 var existingEntries = data;
+                console.log(JSON.stringify(existingEntries));
+                
+                    // Add IP if not in the list
                     if (existingEntries.length === 0) {
-                      // Add IP if not in the list
                       conn.write('/ip/firewall/address-list/add', [
                         `=list=${listName}`,
                         `=address=${ip}`,
