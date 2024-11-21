@@ -18,10 +18,10 @@ const router = {
 };
 
 // Function to add IP to MikroTik address list
-async function addIpToAddressList(ip, listName = list) {
-  const connection = MikroNode.getConnection(router.host, router.user, router.pass);
+async function addIpToAddressList(ip, listName = 'my-address-list') {
+  const connection = await MikroNode.connect(router.host, router.user, router.pass);
+  
   try {
-    await connection.connect();
     const channel = connection.openChannel();
 
     // Check if IP already exists in the list
@@ -54,7 +54,7 @@ async function addIpToAddressList(ip, listName = list) {
 
 // Function to remove old IPs from the address list
 async function removeOldIps(listName = list, maxAgeHours = expireHours) {
-  const connection = MikroNode.getConnection(router.host, router.user, router.pass);
+  const connection = MikroNode.connect(router.host, router.user, router.pass);
   try {
     await connection.connect();
     const channel = connection.openChannel();
