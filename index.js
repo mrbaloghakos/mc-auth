@@ -38,7 +38,8 @@ async function addIpToAddressList(ip, listName = list) {
                 
                     // Add IP if not in the list
                     if (existingEntries.length === 0) {
-                      conn.write('/ip/firewall/address-list/add', [
+                        conn.write([
+                        '/ip/firewall/address-list/add',
                         `=list=${listName}`,
                         `=address=${ip}`,
                         `=comment=Added on ${new Date().toISOString()}`
