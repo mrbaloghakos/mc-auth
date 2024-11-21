@@ -96,15 +96,15 @@ app.post('/add-ip', async (req, res) => {
     const { ip } = req.body;
 
     if (!ip) {
-        return res.status(400).send('IP address is required.');
+        return res.status(400).send('IP address is required.\n');
     }
     try {
         // console.log("IPPPP: " + JSON.stringify(ip));
         await addIpToAddressList(ip);
-        res.status(200).send(`\nIP ${ip} processed.`);
+        res.status(200).send(`IP ${ip} processed.\n`);
     } catch (err) {
         console.error(err);
-        res.status(500).send('\nAn error occurred while processing the request.');
+        res.status(500).send('An error occurred while processing the request.\n');
     }
 });
 // removeOldIps();
