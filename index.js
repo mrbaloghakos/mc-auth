@@ -9,6 +9,16 @@ var corsOptions = {
 //   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
+// Save the original console.log function
+const originalLog = console.log;
+
+// Override console.log
+console.log = function (...args) {
+    const now = new Date();
+    const timestamp = `[${now.toLocaleString()}]`; // Custom format: MM/DD/YYYY, HH:MM:SS AM/PM
+    originalLog(timestamp, ...args);
+};
+
 const app = express();
 const port = 3000;
 const list = 'mc-auth';
@@ -47,8 +57,9 @@ async function addIpToAddressList(ip, listName = list) {
                     `=list=${listName}`,
                     `=address=${ip}`,
                     `=comment=Added on ${new Date().toISOString()}`
-                ]).then(() => {
+                ]).then(async () => {
                     console.log(`IP ${ip} added to address list.`);
+                    await sendToHomeAssistant(ip);
                 }).catch((err) => {
                     console.log("Adding error")
                     console.log(err.message);
@@ -102,6 +113,29 @@ async function removeOldIps(listName = list, maxAgeHours = expireHours) {
     });
 }
 
+// Send auth event to Home Assistant
+async function sendToHomeAssistant(data) {
+    const url = 'https://baloghsmart.hu/api/webhook/-aQyznBief2oiA-jUywBe7Hdq'; // Replace with your target URL
+    const body = {}
+    body.ip = data;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Set the content type to JSON
+            },
+            body: JSON.stringify(body), // Convert the payload to a JSON string
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Error sending POST request:', error);
+    }
+}
+
 // Serve the favicon
 app.get('/favicon.ico', (req, res) => {
     res.sendFile(path.join(__dirname, 'favicon.ico'));
@@ -115,7 +149,6 @@ app.post('/add-ip',cors(corsOptions), async (req, res) => {
         return res.status(400).send('IP address is required.\n');
     }
     try {
-        // console.log("IPPPP: " + JSON.stringify(ip));
         await addIpToAddressList(ip);
         res.status(200).send(`IP ${ip} processed.\n`);
     } catch (err) {
