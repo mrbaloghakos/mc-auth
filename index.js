@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
 const RosApi = require('node-routeros').RouterOSAPI;
 var cors = require('cors')
 
@@ -9,13 +10,16 @@ var corsOptions = {
 }
 
 const app = express();
-app.use(cors());
 const port = 3000;
 const list = 'mc-auth';
 const expireHours = 5;
 
 // Middleware to parse JSON request bodies
 app.use(bodyParser.json());
+app.use(cors());
+// app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname))); // Serve static files
+
 
 // MikroTik connection settings
 const router = {
@@ -97,6 +101,11 @@ async function removeOldIps(listName = list, maxAgeHours = expireHours) {
         console.log(err);
     });
 }
+
+// Serve the favicon
+app.get('/favicon.ico', (req, res) => {
+    res.sendFile(path.join(__dirname, 'favicon.ico'));
+});
 
 // Route to handle incoming POST requests
 app.post('/add-ip',cors(corsOptions), async (req, res) => {

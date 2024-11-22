@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticator</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* General styles for dark mode */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            margin-top: 50px; /* Move content to the top */
+            text-align: center;
+            padding: 20px;
+            background-color: #1e1e1e;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin: 10px 0;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #444;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #007BFF;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #responseMessage {
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+            }
+
+            p {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Authenticator</h1>
+        <p>Your public IP address:</p>
+        <p id="publicIp" style="font-weight: bold; color: #00FF00;">Fetching...</p>
+        <button id="addIpButton" disabled>Go!</button>
+        <div class="spinner" id="spinner"></div>
+        <p id="responseMessage"></p>
+    </div>
+
+    <script>
+        async function getPublicIp() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch public IP address.');
+                }
+                const data = await response.json();
+                return data.ip;
+            } catch (err) {
+                console.error(err);
+                return null;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const publicIpElement = document.getElementById('publicIp');
+            const addIpButton = document.getElementById('addIpButton');
+            const spinner = document.getElementById('spinner');
+            const responseMessage = document.getElementById('responseMessage');
+
+            // Get the public IP address and display it
+            const publicIp = await getPublicIp();
+            if (publicIp) {
+                publicIpElement.textContent = publicIp;
+
+                // Enable the button when IP is fetched
+                addIpButton.disabled = false;
+
+                // Add click event to send the IP to the server
+                addIpButton.addEventListener('click', async () => {
+                    spinner.style.display = 'block'; // Show the spinner
+                    responseMessage.textContent = '';
+                    addIpButton.disabled = true; // Disable the button during the request
+
+                    try {
+                        const response = await fetch('/add-ip', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ ip: publicIp }),
+                        });
+
+                        spinner.style.display = 'none'; // Hide the spinner
+                        addIpButton.disabled = false; // Re-enable the button
+
+                        if (response.ok) {
+                            const result = await response.text();
+                            responseMessage.style.color = '#00FF00';
+                            responseMessage.textContent = 'Success!';
+                        } else {
+                            responseMessage.style.color = '#FF0000';
+                            responseMessage.textContent = 'Failed to add IP. Please try again.';
+                        }
+                    } catch (err) {
+                        spinner.style.display = 'none'; // Hide the spinner
+                        addIpButton.disabled = false; // Re-enable the button
+                        responseMessage.style.color = '#FF0000';
+                        responseMessage.textContent = 'An error occurred: ' + err.message;
+                    }
+                });
+            } else {
+                publicIpElement.textContent = 'Could not fetch public IP.';
+                publicIpElement.style.color = '#FF0000';
+                addIpButton.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
