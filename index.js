@@ -27,8 +27,11 @@ const expireHours = 5;
 // Middleware to parse JSON request bodies
 app.use(bodyParser.json());
 app.use(cors());
-// app.use(express.static(__dirname));
-app.use(express.static(path.join(__dirname))); // Serve static files
+app.set('trust proxy', true);
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} - Source IP: ${req.ip}`);
+  next();
+});
 
 
 // MikroTik connection settings
@@ -135,6 +138,11 @@ async function sendToHomeAssistant(data) {
         console.error('Error sending POST request:', error);
     }
 }
+
+// Route to serve static HTML for GET /
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Serve the favicon
 app.get('/favicon.ico', (req, res) => {
