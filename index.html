@@ -157,9 +157,9 @@
                         addIpButton.disabled = false; // Re-enable the button
 
                         if (response.ok) {
-                            const result = await response.text();
+                            const result = await response.json();
                             responseMessage.style.color = '#00FF00';
-                            responseMessage.textContent = 'Success!';
+                            responseMessage.textContent = `Success, server ip: ${result.server}`;
                         } else {
                             responseMessage.style.color = '#FF0000';
                             responseMessage.textContent = 'Failed to add IP. Please try again.';

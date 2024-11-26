@@ -149,8 +149,12 @@ app.post('/add-ip',cors(corsOptions), async (req, res) => {
         return res.status(400).send('IP address is required.\n');
     }
     try {
+        let responsejson = {};
+        responsejson.success = true;
+        responsejson.server = "mc.baloghsmart.hu:37807"
+
         await addIpToAddressList(ip);
-        res.status(200).send(`IP ${ip} processed.\n`);
+        res.status(200).send(responsejson);
     } catch (err) {
         console.error(err);
         res.status(500).send('An error occurred while processing the request.\n');
